@@ -1,0 +1,29 @@
+version: '3.8'
+services:
+  localstack:
+    image: localstack/localstack:latest
+    container_name: "${LOCALSTACK_DOCKER_NAME:-localstack-main}"
+    ports:
+      - "4567:4566"                  # Using 4567 on host in case 4566 is busy
+      - "4510-4559:4510-4559"
+    environment:
+      - SERVICES=s3,lambda
+      - DEBUG=1
+      - LOCALSTACK_HOST=0.0.0.0       # Force bind to all interfaces
+      # Use TCP to avoid the Windows Named Pipe bug in podman-compose
+      - DOCKER_HOST=tcp://host.docker.internal:8888
+      # Explicit network name for Lambda containers
+      - LAMBDA_DOCKER_NETWORK=podman-docker-compose_localstack-net
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - localstack-net
+    volumes:
+      - "${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack"
+    networks:
+      - localstack-net
+    security_opt:
+      - "label=disable"
+networks:
+  localstack-net:
+    driver: bridge
