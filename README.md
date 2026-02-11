@@ -1,4 +1,12 @@
-# local-lambda-java-lemulator
+# local-lambda-java-emulator
+
+This project is a high-performance **AWS Lambda function** built with **Java 25**, designed to efficiently compare files stored in **Amazon S3**. It calculates content equality using buffered streams to minimize memory overhead, making it ideal for processing large files.
+
+The repository is specifically optimized for **local development and testing**, featuring seamless integration with **LocalStack** and **Podman/Docker**. It uses a local SQLite database for results during local runs and supports PostgreSQL for production deployments.
+
+- **Stack**: Java 25, AWS SDK v2, Maven, Terraform.
+- **Local Dev**: LocalStack, Podman/Docker, SQLite.
+
 > [!NOTE]
 > **LocalStack Free**: This setup is compatible with LocalStack Community Edition. We use a local SQLite database in `/tmp` for storage when running locally.
 
@@ -13,18 +21,29 @@
 >     ```powershell
 >     podman system service tcp:0.0.0.0:8888 --timeout=0
 >     ```
+>     *If needed, run it after doing ssh (as shown in the attached images)* 
+>
 >     *Keep this window open.*
+>
+>     ![alt text](docs/images/image.png)
+>
 > 2.  **Restart LocalStack**:
 >     ```bash
 >     podman-compose down
 >     podman-compose up -d
 >     ```
 > 3.  **Verify**: Run `curl.exe http://localhost:4567/_localstack/health` in a new terminal.
-> 3. Alternatively, if on Linux/WSL2, mount `/run/user/1000/podman/podman.sock` (check your path with `podman info`).
+>
+>     ![alt text](docs/images/image-1.png)
+>     ![alt text](docs/images/image-2.png)
+>     ![alt text](docs/images/image-3.png)
+>
+> 4. Alternatively, if on Linux/WSL2, mount `/run/user/1000/podman/podman.sock` (check your path with `podman info`).
 
 ## Prerequisites
 - Java 25
 - Maven
+- Podman (*_How To_*: https://github.com/gsbuddy87/sb-kafka-si?tab=readme-ov-file#install-podman-ignore-if-podman--docker-is-already-running-in-your-local-machine)
 - Terraform
 - LocalStack (running on `localhost:4567`)
 - `awslocal` CLI (optional, but recommended for easy interaction)
@@ -40,6 +59,7 @@ mvn clean package
 1.  **Deploy Infrastructure**:
     ```powershell
     cd terraform
+    terraform init
     terraform apply -var="environment=local" -auto-approve
     ```
 
@@ -68,7 +88,7 @@ mvn clean package
     ```
     Invoke:
     ```powershell
-    aws --endpoint-url=http://localhost:4567 lambda invoke --function-name s3-comparator --region us-east-1 --payload file://request.json --cli-binary-format raw-in-base64-out response.json
+    aws --endpoint-url=http://localhost:4567 lambda invoke --function-name s3-comparator --region us-east-1 --payload file://docs//sample-test-files//request.json --cli-binary-format raw-in-base64-out response.json
     type response.json
     ```
 
