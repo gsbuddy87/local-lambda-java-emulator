@@ -1,4 +1,4 @@
-# local-lambda-java-emulator
+# Local AWS Lambda (Java) Using Localstack Emulator
 
 This project is a high-performance **AWS Lambda function** built with **Java 25**, designed to efficiently compare files stored in **Amazon S3**. It calculates content equality using buffered streams to minimize memory overhead, making it ideal for processing large files.
 
@@ -6,6 +6,7 @@ The repository is specifically optimized for **local development and testing**, 
 
 - **Stack**: Java 25, AWS SDK v2, Maven, Terraform.
 - **Local Dev**: LocalStack, Podman/Docker, SQLite.
+- **Test**: Testcontainers, H2 in-memory DB, Mockito, Junit-jupiter  
 
 > [!NOTE]
 > **LocalStack Free**: This setup is compatible with LocalStack Community Edition. We use a local SQLite database in `/tmp` for storage when running locally.
@@ -48,13 +49,48 @@ The repository is specifically optimized for **local development and testing**, 
 - LocalStack (running on `localhost:4567`)
 - `awslocal` CLI (optional, but recommended for easy interaction)
 
-## 1. Build the Project
-Package the Java application into an Uber-JAR.
 ```bash
 mvn clean package
 ```
 
-## Local Verification (LocalStack)
+## 2. Running Tests
+
+### Unit Tests
+Run unit tests only:
+```bash
+mvn test
+```
+
+### Integration Tests
+The project includes integration tests that verify end-to-end functionality with S3 and database interactions.
+
+**Run all tests (unit + integration):**
+```bash
+mvn verify
+```
+
+**Run only integration tests:**
+```bash
+mvn verify -DskipUTs
+```
+
+**Run specific integration test:**
+```bash
+mvn test -Dtest=HandlerIT
+```
+
+**Test Setup:**
+- Uses **H2 in-memory database** (no external database needed)
+- Uses **Testcontainers** with **LocalStack** for S3 emulation
+- Requires **Docker or Podman** running locally
+
+**What's Tested:**
+- ✅ S3 file upload and retrieval
+- ✅ File comparison (identical and different files)
+- ✅ Database record creation
+- ✅ Handler response validation
+
+## 3. Local Verification (LocalStack)
 
 1.  **Deploy Infrastructure**:
     ```powershell
@@ -89,6 +125,7 @@ mvn clean package
     Invoke:
     ```powershell
     aws --endpoint-url=http://localhost:4567 lambda invoke --function-name s3-comparator --region us-east-1 --payload file://docs//sample-test-files//request.json --cli-binary-format raw-in-base64-out response.json
+
     type response.json
     ```
 
@@ -99,7 +136,7 @@ mvn clean package
       aws --endpoint-url=http://localhost:4567 logs tail /aws/lambda/s3-comparator --region us-east-1
       ```
 
-## AWS Deployment
+## AWS Deployment [NOT Tested Yet]
 To deploy to actual AWS:
 1.  Ensure you have your AWS credentials configured.
 2.  Run:

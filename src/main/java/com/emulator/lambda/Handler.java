@@ -19,10 +19,11 @@ public class Handler implements RequestHandler<ComparisonRequest, String> {
 
     public Handler() {
         // 1. Configure S3 Client
-        String s3Endpoint = System.getenv("S3_ENDPOINT");
-        String region = System.getenv("AWS_REGION");
-        if (region == null)
+        String s3Endpoint = getCfg("S3_ENDPOINT");
+        String region = getCfg("AWS_REGION");
+        if (region == null || region.isEmpty()) {
             region = "us-east-1";
+        }
 
         S3ClientBuilder s3Builder = S3Client.builder()
                 .region(Region.of(region))
@@ -30,29 +31,32 @@ public class Handler implements RequestHandler<ComparisonRequest, String> {
 
         if (s3Endpoint != null && !s3Endpoint.isEmpty()) {
             s3Builder.endpointOverride(URI.create(s3Endpoint));
-            // For LocalStack/MinIO, path style access is often needed
             s3Builder.forcePathStyle(true);
         }
 
         this.s3Service = new S3Service(s3Builder.build());
 
         // 2. Configure Database Service
-        String dbConnectionString = System.getenv("DB_CONNECTION_STRING");
+        String dbConnectionString = getCfg("DB_CONNECTION_STRING");
         if (dbConnectionString == null || dbConnectionString.isEmpty()) {
-            // Fallback for local testing if not set? Or fail hard.
-            // Let's default to a local sqlite file if not set, for ease of use.
-            dbConnectionString = "jdbc:sqlite:/tmp/results.db";
+            // Default to an in-memory database for local tests if nothing is provided
+            dbConnectionString = "jdbc:sqlite::memory:";
         }
 
         this.databaseService = new DatabaseService(dbConnectionString);
         try {
             this.databaseService.initDatabase();
         } catch (Exception e) {
-            throw new RuntimeException("Failed to initialize database", e);
+            throw new RuntimeException("Failed to initialize database: " + e.getMessage(), e);
         }
 
         // 3. Initialize Comparator
         this.streamComparator = new StreamComparator();
+    }
+
+    private String getCfg(String key) {
+        String val = System.getenv(key);
+        return (val != null && !val.isEmpty()) ? val : System.getProperty(key);
     }
 
     // Constructor for testing with mocks

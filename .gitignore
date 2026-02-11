@@ -27,4 +27,8 @@ podman-docker-compose/localstack_data/*
 podman-docker-compose/volume/*
 target/*
 terraform/.terraform/*
-terraform/.terraform.lock.hcl
+terraform/.terraform.*
+terraform/terraform*
+.vscode/*
+*.txt
+*.json
