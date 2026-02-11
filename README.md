@@ -112,6 +112,11 @@ mvn test -Dtest=HandlerIT
     echo "This is DIFFERENT content" > file3.txt
     aws --endpoint-url=http://localhost:4567 s3 cp file3.txt s3://my-comparison-bucket-emulator/file3.txt
     ```
+    ```powershell
+    NOTE:
+    - Please create big files to test the performance of the lambda function. For example, create a file with 1GB of data.
+    - A sample script to create big files is available in the docs/sample-test-files/scripts directory. Modify this script to create files of your choice (this script requires python).
+    ```
 
 3.  **Invoke Lambda**:
     Prepare the payload ([request.json](file:///d:/POC/git/local-lambda-java-emulator/request.json)):
