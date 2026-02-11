@@ -7,7 +7,7 @@ services:
       - "4567:4566"                  # Using 4567 on host in case 4566 is busy
       - "4510-4559:4510-4559"
     environment:
-      - SERVICES=s3,lambda
+      - SERVICES=s3,lambda,logs
       - DEBUG=1
       - LOCALSTACK_HOST=0.0.0.0       # Force bind to all interfaces
       # Use TCP to avoid the Windows Named Pipe bug in podman-compose
